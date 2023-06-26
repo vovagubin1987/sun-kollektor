@@ -64,6 +64,7 @@ bool StartAPMode() {
 void setup() {
   // put your setup code here, to run once:
 Serial.begin(115200);
+pinMode(rele, OUTPUT);
   delay(7);
   Serial.println("Start 1-WIFI");
   //Запускаем WIFI
@@ -135,16 +136,20 @@ server.on("/", [](){
     
       message+="t выхода из коллектора:";
       message+=String(g_tOutK);
-      message+="\n t выхода из накопителя:";
+      message+="<br> t выхода из накопителя:";
       message+=String(g_tOutN);
-      message+="\n накоплено энергии итого:";
+      message+="<br> накоплено энергии итого:";
       message+=String(g_Watt);
-      message+="\n за время:";
-      message+=String(g_Time/g_TOpros);
-      message+="\n статус циркуляционного насоса:";
+      message+="<br> за время(часы):";
+      short tmp300=g_Time*g_TOpros/3600/1000;
+      message+=String(tmp300);
+      message+="<br> статус циркуляционного насоса:";
       message+=String(g_Nasos);
-      message+="\n t принудительного отключения:";
+      message+="<br> t принудительного отключения:";
       message+=String(g_TBreakOff);
+      message+=String(tmp_tOutK);
+      message+=String(ds.isConnected(sensor_tOutK));
+      message+=String(tmp2);
       //message+="\n";
      // message+=String(schet2);
       //message+="\n";
@@ -189,15 +194,22 @@ server.on("/", [](){
 server.begin();
 
 
-ts.add(0, g_TOpros, [&](void*) { // Запустим задачу 0 с интервалом test
-      signed short  tmp_tOutK=0;
-  signed short tmp_tOutN=0;
+ts.add(0, g_TOpros, [&](void*) { f_1();}, nullptr, true);
+ 
 
-  if (indexforindex==0){
+
+}
+
+void f_1(){
+      // signed short  tmp_tOutK=0;
+  //signed short tmp_tOutN=0;
+
+
   if (ds.isConnected(sensor_tOutK)){
     //#define ETS_INTR_LOCK() ets_intr_lock() //запрет прерываний
   ds.requestTemperaturesByAddress(sensor_tOutK);
-  //delay(200);
+  //
+  delay(200);
   tmp_tOutK= (short) ds.getTempC(sensor_tOutK);
   
   //#define ETS_INTR_UNLOCK() ets_intr_unlock() //разрешение всех прерываний
@@ -214,19 +226,19 @@ ts.add(0, g_TOpros, [&](void*) { // Запустим задачу 0 с инте�
   }
 
   g_Time=g_Time+1;
-  signed short dt=0;
+  //signed short dt=0;
 
 
 
   if (g_Time<2){
-    g_tOutN=tmp_tOutN+273;
-    g_tOutK=tmp_tOutK+273;
+    g_tOutN=tmp_tOutN;
+    g_tOutK=tmp_tOutK;
 
   } else {
-    signed short tmp1=0;
-    signed short tmp2=0;
-    tmp1=(g_tOutN+tmp_tOutN+273)/2;
-    tmp2=(g_tOutK+tmp_tOutN+273)/2;
+    //signed short tmp1=0;
+    //signed short tmp2=0;
+    tmp1=(g_tOutN+tmp_tOutN)/2;
+    tmp2=(g_tOutK+tmp_tOutN)/2;
     g_tOutN=tmp1;
     g_tOutK=tmp2;
 
@@ -236,7 +248,7 @@ ts.add(0, g_TOpros, [&](void*) { // Запустим задачу 0 с инте�
   if (dt<0){
     dt=0;
   };
-  g_Watt=g_Watt+g_C*dt*g_M*g_TOpros/60/10;
+  g_Watt=g_Watt+g_C*dt*g_M*g_TOpros/60/10/1000;
 
   if (dt<3){
     g_Nasos=false;
@@ -249,12 +261,6 @@ ts.add(0, g_TOpros, [&](void*) { // Запустим задачу 0 с инте�
     Serial.println("Resetting ESP");
       ESP.restart();
   }
-
-  }
-
-
-    }, nullptr, true);
-
 
 }
 
