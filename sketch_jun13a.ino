@@ -1,3 +1,4 @@
+
 #include "zaglavie.h"
 
 void WIFIinit() {
@@ -72,8 +73,9 @@ pinMode(rele, OUTPUT);
 
 
   ds.begin();//инициализация 18b20
-  ds.setResolution(sensor_tOutK,10);//18b20 установка разрешения преобразования
-  ds.setResolution(sensor_tOutN,10);//18b20 установка разрешения преобразования
+  ds.setResolution(sensor_tOutK,11);//18b20 установка разрешения преобразования
+  delay(200);
+  ds.setResolution(sensor_tOutN,11);//18b20 установка разрешения преобразования
 
 
   server.on("/search", [](){
@@ -88,9 +90,10 @@ pinMode(rele, OUTPUT);
       message+="<table>";
       for( i = 0; i < 2; i++) {
         ds.getAddress(Thermometer, i);
+        delay(200);
         byte t[8];
         t[i]= ds.getTempCByIndex(i);
-        delay(200);
+        delay(400);
         message+=tr_td;
         message+="id=";
         message+=i;
@@ -209,21 +212,25 @@ void f_1(){
     //#define ETS_INTR_LOCK() ets_intr_lock() //запрет прерываний
   ds.requestTemperaturesByAddress(sensor_tOutK);
   //
-  delay(200);
+  delay(700);
   tmp_tOutK= (short) ds.getTempC(sensor_tOutK);
   
   //#define ETS_INTR_UNLOCK() ets_intr_unlock() //разрешение всех прерываний
+  } else {
+    tmp_tOutK=50;
   }
 
   if (ds.isConnected(sensor_tOutN)){
     //#define ETS_INTR_LOCK() ets_intr_lock() //запрет прерываний
   ds.requestTemperaturesByAddress(sensor_tOutN);
   //
-  delay(200);
+  delay(700);
   tmp_tOutN= (short) ds.getTempC(sensor_tOutN);
   
   //#define ETS_INTR_UNLOCK() ets_intr_unlock() //разрешение всех прерываний
-  }
+  } else{
+    tmp_tOutN=45;
+  };
 
   g_Time=g_Time+1;
   //signed short dt=0;
@@ -256,6 +263,10 @@ void f_1(){
   } else {
     digitalWrite(rele, HIGH);
     g_Nasos=true;
+    if (g_tOutN>g_TBreakOff){
+      g_Nasos=false;
+      digitalWrite(rele, LOW);
+    }
   }
   if (g_Watt> 10446744073709 or g_Time>10446744073709){
     Serial.println("Resetting ESP");
