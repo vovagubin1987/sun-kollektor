@@ -1,4 +1,3 @@
-
 #include "zaglavie.h"
 
 void WIFIinit() {
@@ -245,13 +244,15 @@ void f_1(){
     //signed short tmp1=0;
     //signed short tmp2=0;
     tmp1=(g_tOutN+tmp_tOutN)/2;
-    tmp2=(g_tOutK+tmp_tOutN)/2;
+    //tmp2=(g_tOutK+tmp_tOutN)/2;
+    tmp2=(g_tOutK+tmp_tOutK)/2;
     g_tOutN=tmp1;
     g_tOutK=tmp2;
 
   };
 
-  dt=g_tOutK-g_tOutN;
+  //dt=g_tOutK-g_tOutN;
+  dt=tmp_tOutK-tmp_tOutN
   if (dt<0){
     dt=0;
   };
